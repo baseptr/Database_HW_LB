@@ -9,9 +9,7 @@ DROP TABLE IF EXISTS employees CASCADE;
 DROP TABLE IF EXISTS clients CASCADE;
 
 
-
--- Table: clients
--- Stores information about customers of the travel agency
+-- information about customers of the travel agency
 CREATE TABLE clients
 (
     client_id         SERIAL PRIMARY KEY,
@@ -24,9 +22,9 @@ CREATE TABLE clients
     CONSTRAINT chk_email_format CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$')
 );
 
--- Table: employees
--- Stores agency employees with hierarchical relationship (manager-employee)
--- RECURSIVE RELATIONSHIP: manager_id → employee_id
+
+-- agency employees with hierarchical relationship (manager-employee)
+-- rec-relationship: manager_id → employee_id
 CREATE TABLE employees
 (
     employee_id SERIAL PRIMARY KEY,
@@ -44,8 +42,8 @@ CREATE TABLE employees
     CONSTRAINT chk_not_self_manager CHECK (employee_id != manager_id)
 );
 
--- Table: destinations
--- Stores cities/countries that can be included in tours
+
+-- cities/countries that can be included in tours
 CREATE TABLE destinations
 (
     destination_id SERIAL PRIMARY KEY,
@@ -58,8 +56,7 @@ CREATE TABLE destinations
     CONSTRAINT uq_country_city UNIQUE (country, city)
 );
 
--- Table: tours
--- Stores tour packages offered by the agency
+-- tour packages offered by the agency
 CREATE TABLE tours
 (
     tour_id          SERIAL PRIMARY KEY,
@@ -72,8 +69,8 @@ CREATE TABLE tours
     is_active        BOOLEAN        NOT NULL DEFAULT TRUE
 );
 
--- Table: tour_destinations (M:N relationship #1)
--- Links tours with their destinations (a tour can include multiple destinations)
+
+-- tours with their destinations (a tour can include multiple destinations)
 CREATE TABLE tour_destinations
 (
     tour_id        INTEGER NOT NULL,
@@ -89,8 +86,8 @@ CREATE TABLE tour_destinations
         ON DELETE CASCADE
 );
 
--- Table: excursions
--- Stores optional excursions available at destinations
+
+-- optional excursions available at destinations
 CREATE TABLE excursions
 (
     excursion_id     SERIAL PRIMARY KEY,
@@ -106,8 +103,8 @@ CREATE TABLE excursions
         ON DELETE CASCADE
 );
 
--- Table: bookings
--- Stores customer bookings for tours
+
+-- customer bookings for tours
 CREATE TABLE bookings
 (
     booking_id          SERIAL PRIMARY KEY,
@@ -136,8 +133,8 @@ CREATE TABLE bookings
     CONSTRAINT chk_tour_start CHECK (tour_start_date >= booking_date)
 );
 
--- Table: travelers
--- Stores information about individual travelers in a booking
+
+-- information about individual travelers in a booking
 CREATE TABLE travelers
 (
     traveler_id          SERIAL PRIMARY KEY,
@@ -155,8 +152,8 @@ CREATE TABLE travelers
     CONSTRAINT chk_age CHECK (date_of_birth < CURRENT_DATE)
 );
 
--- Table: booking_excursions (M:N relationship #2)
--- Links bookings with selected optional excursions
+
+-- bookings with selected optional excursions
 CREATE TABLE booking_excursions
 (
     booking_id             INTEGER        NOT NULL,
@@ -184,7 +181,7 @@ CREATE INDEX idx_tour_destinations_tour ON tour_destinations (tour_id);
 CREATE INDEX idx_excursions_destination ON excursions (destination_id);
 CREATE INDEX idx_employees_manager ON employees (manager_id);
 
-
+-- comments for convenience
 COMMENT ON TABLE clients IS 'Stores customer information';
 COMMENT ON TABLE employees IS 'Stores agency employees with manager hierarchy';
 COMMENT ON TABLE destinations IS 'Cities and countries with basic hotel info';
@@ -198,7 +195,7 @@ COMMENT ON TABLE booking_excursions IS 'M:N relationship: bookings and selected 
 COMMENT ON COLUMN employees.manager_id IS 'Reference to manager';
 COMMENT ON COLUMN bookings.status IS 'Booking status: Pending, Confirmed, Cancelled, Completed';
 
-
+-- TEST DATA
 
 INSERT INTO clients (first_name, last_name, email, phone, address, registration_date)
 VALUES ('John', 'Smith', 'john.smith@email.com', '+1-555-0101', '123 Main St, New York, NY', '2024-01-15'),
@@ -208,7 +205,7 @@ VALUES ('John', 'Smith', 'john.smith@email.com', '+1-555-0101', '123 Main St, Ne
        ('James', 'Wilson', 'james.wilson@email.com', '+1-555-0105', '654 Maple Dr, Seattle, WA', '2024-05-12');
 
 
--- Сначала CEO без manager_id, затем остальные с manager_id
+-- first CEO without manager_id, after others with manager_id
 INSERT INTO employees (first_name, last_name, email, phone, position, hire_date, salary, manager_id)
 VALUES ('Robert', 'Anderson', 'robert.anderson@agency.com', '+1-555-1001', 'CEO', '2020-01-01', 120000.00, NULL),
        ('Linda', 'Martinez', 'linda.martinez@agency.com', '+1-555-1002', 'Sales Manager', '2021-03-15', 85000.00, 1),
@@ -287,21 +284,21 @@ VALUES
 INSERT INTO bookings (client_id, tour_id, employee_id, booking_date, tour_start_date, number_of_travelers, total_price,
                       status, payment_amount, payment_date, payment_method, special_requests)
 VALUES
--- Подтвержденные бронирования
+-- confirmed
 (1, 1, 4, '2025-03-15', '2025-06-01', 2, 5249.98, 'Confirmed', 5249.98, '2025-05-01', 'Credit Card',
  'Need room with city view'),
 (2, 4, 4, '2025-04-20', '2025-07-10', 2, 2899.98, 'Confirmed', 2899.98, '2025-04-20', 'Credit Card',
  'Anniversary trip, romantic setup please'),
 (3, 3, 5, '2025-05-01', '2025-08-15', 3, 6049.97, 'Confirmed', 3024.99, '2025-05-01', 'Bank Transfer',
  'Traveling with 10 year old child'),
--- В ожидании
+-- pending
 (4, 2, 5, '2025-10-25', '2025-12-01', 2, 3549.98, 'Pending', 1774.99, '2025-10-25', 'PayPal', NULL),
 (5, 5, 4, '2025-10-26', '2025-11-20', 4, 7649.96, 'Pending', 3824.98, '2025-10-26', 'Credit Card',
  'Vegetarian meals required'),
--- Завершенные
+-- completed
 (1, 4, 4, '2024-06-01', '2024-08-15', 2, 2849.98, 'Completed', 2849.98, '2024-06-01', 'Credit Card', NULL),
 (3, 2, 5, '2024-08-10', '2024-10-05', 2, 3449.98, 'Completed', 3449.98, '2024-08-10', 'Debit Card', NULL),
--- Отмененные
+-- cancelled
 (2, 3, 4, '2025-09-01', '2025-11-01', 2, 4149.98, 'Cancelled', 2074.99, '2025-09-01', 'Credit Card',
  'Cancelled due to change of plans');
 
