@@ -1,7 +1,6 @@
-.idea
-DatabasesPractice.iml
-HW1_Database_Design.pdf
-README.md
-Task1.pdf
-JavaLab_1
+.idea/
+JavaLab_1/
 out/
+DatabasesPractice.iml
+HW1_Database/HW1_Database_Design.pdf
+HW1_Database/README.md
