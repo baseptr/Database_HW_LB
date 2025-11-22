@@ -34,6 +34,9 @@ CREATE TABLE Order_Items
     CONSTRAINT order_items_product_name_fkey FOREIGN KEY (product_name) REFERENCES Products(p_name) ON DELETE CASCADE
 );
 
+
+
+
 --Task 2 insert data
 INSERT INTO Orders (order_date)
 VALUES ('2024-01-15'),
@@ -54,9 +57,12 @@ INSERT INTO Order_Items (order_id, product_name, amount)
 VALUES (2, 'p1', 3),
        (2, 'p2', 5);
 
+
+
+
+
+
 --Task 3 migration
-
-
 ALTER TABLE Products
     ADD COLUMN p_id SERIAL;
 
@@ -138,6 +144,11 @@ ALTER TABLE Order_Items
 ALTER TABLE Order_Items
     ADD CONSTRAINT order_items_total_check
         CHECK (total = amount * price);
+
+
+
+
+
 
 
 --Task 4 data update
